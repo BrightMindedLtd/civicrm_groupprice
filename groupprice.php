@@ -22,12 +22,15 @@ function groupprice_civicrm_buildForm($formName, &$form) {
       $defaults = groupprice_getAcls($oid);
       $form->setDefaults(array('groupprice_gids' => $defaults['gids']));
     }
-    $form->add('select', 'groupprice_gids', 'groupprice_gids', $group_list);
+    $form->add('select', 'groupprice_gids', 'groupprice_gids', $group_list, false, [
+        'multiple' => true,
+        'class' => 'crm-select2',
+        'placeholder' => ts('- select group(s) -')
+    ]);
     $element = $form->getElement('groupprice_gids');
     if (!$oid) {
       $element->updateAttributes(array('disabled' => true));
     }
-    $element->setMultiple(true);
 
     //no oid means this price option is being added
     $form->add('checkbox', 'groupprice_negate', 'groupprice_negate');
