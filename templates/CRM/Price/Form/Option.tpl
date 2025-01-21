@@ -99,14 +99,14 @@
         <tr class="crm-price-option-form-groupprice_gids"></tr>
         <td class="label">Restrict Price Option To:</td>
         <td>{$form.groupprice_gids.html}
-          <div class="description">{ts}Select the groups that should have access to this price option. If multiple groups are selected, users must belong to any of the selected groups to see this option. Leave empty to display to all users.{/ts}</div>
+          <div class="description">{ts}Select the groups that should have access to this price option. If multiple groups are selected, users must belong to at least one of the selected groups to see this option. Leave empty to display to all users.{/ts}</div>
         </td>
         </tr>
         <tr class="crm-price-option-form-groupprice_gids"></tr>
         <td class="label">Negate Group Restrictions:</td>
         <td>
           {$form.groupprice_negate.html}
-          <div class="description">{ts}When checked, the price option will be hidden from the selected groups instead of being shown.{/ts}</div>
+          <div class="description">{ts}When checked, the price option will be hidden from members of the selected groups instead of being shown.{/ts}</div>
         </td>
         </tr>
       {/if}
