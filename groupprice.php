@@ -245,6 +245,68 @@ function groupprice_getAcls($oid) {
 }
 
 /**
+ * Implements hook_civicrm_copy().
+ *
+ * @param string $objectName
+ *   Name of the object being copied
+ * @param object $object
+ *   The newly created copy
+ * @param int $originalPriceSetId
+ *   The ID of the original object
+ */
+function groupprice_civicrm_copy($objectName, $object, $originalPriceSetId) {
+  // Check that it is a Price Set that is being copied
+  if ($objectName !== 'Set') {
+    return;
+  }
+
+  $newPriceSetId = $object->id;
+
+  // Get the price field values for the original price set
+  $sql = "SELECT
+      CONCAT(
+          civicrm_price_field.name, '_',
+          civicrm_price_field.label, '_',
+          civicrm_price_field_value.name, '_',
+          civicrm_price_field_value.label, '_',
+          civicrm_price_field_value.amount
+      ) AS price_field_value_key,
+      civicrm_price_field_value.id AS price_field_value_id
+    FROM civicrm_price_set
+    INNER JOIN civicrm_price_field ON civicrm_price_set.id = civicrm_price_field.price_set_id
+    INNER JOIN civicrm_price_field_value ON civicrm_price_field.id = civicrm_price_field_value.price_field_id
+    WHERE civicrm_price_set.id = %1;";
+
+  $originalPriceFieldValues = [];
+  $params = array(1 => array($originalPriceSetId, 'Integer'));
+  $dao = CRM_Core_DAO::executeQuery($sql, $params);
+  while ($dao->fetch()) {
+    $originalPriceFieldValues[$dao->price_field_value_key] = $dao->price_field_value_id;
+  }
+
+  // Get the price field values for the new price set
+  $newPriceFieldValues = [];
+  $params = array(1 => array($newPriceSetId, 'Integer'));
+  $dao = CRM_Core_DAO::executeQuery($sql, $params);
+  while ($dao->fetch()) {
+    $newPriceFieldValues[$dao->price_field_value_key] = $dao->price_field_value_id;
+  }
+
+  // Copy the price field value ACLs and update the oid (price field value id) to the new price field value id
+  foreach ($originalPriceFieldValues as $priceFieldKey => $priceFieldValueId) {
+    if (array_key_exists($priceFieldKey, $newPriceFieldValues)) {
+      $newPriceFieldValueId = $newPriceFieldValues[$priceFieldKey];
+      $sql = "INSERT INTO civicrm_groupprice (oid, gid, negate)
+      SELECT %1, gid, negate
+      FROM civicrm_groupprice
+      WHERE oid = %2;";
+      $params = array(1 => array($newPriceFieldValueId, 'Integer'), 2 => array($priceFieldValueId, 'Integer'));
+      CRM_Core_DAO::executeQuery($sql, $params);
+    }
+  }
+}
+
+/**
  * Implementation of hook_civicrm_config
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_config
